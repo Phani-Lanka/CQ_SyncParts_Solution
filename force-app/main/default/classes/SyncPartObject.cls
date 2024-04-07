@@ -1,7 +1,6 @@
 public class SyncPartObject {
 
     // Method to initiate the synchronization process
-    @InvocableMethod(label='Sync Part Records')
     public static void syncPartRecords() {
         String profileID = UserInfo.getProfileId();
         List<Profile> profileName = [SELECT Name FROM Profile WHERE Id = :profileID];
@@ -30,8 +29,8 @@ public class SyncPartObject {
                 System.debug('Deserialized Parts: ' + parts);
                 
                 List<SQX_Part__c> partRecords = new List<SQX_Part__c>();
-                 List<Account> highVolumeAccounts = [SELECT Id FROM Account WHERE Name = 'High Volume' LIMIT 1];
-            List<Account> lowVolumeAccounts = [SELECT Id FROM Account WHERE Name = 'Low Volume' LIMIT 1];
+                List<Account> highVolumeAccounts = [SELECT Id FROM Account WHERE Name = 'High Volume' LIMIT 1];
+                List<Account> lowVolumeAccounts = [SELECT Id FROM Account WHERE Name = 'Low Volume' LIMIT 1];
 
                 for (Object part : parts) {
     try {
@@ -51,20 +50,16 @@ public class SyncPartObject {
             if (partMap.get('Total_Quantity_Shipped') != null) {
                 Integer totalQuantityShipped = Integer.valueOf(String.valueOf(partMap.get('Total_Quantity_Shipped')));
                 system.debug('totalQuantityShipped' + totalQuantityShipped);
-                 newPart.Related_Account__c = highVolumeAccounts[0].id;
-            //newPart.Related_Account__c = getRelatedAccount(partMap); // Logic to determine Related Account
+                newPart.Related_Account__c = totalQuantityShipped>99 ? highVolumeAccounts[0].id: lowVolumeAccounts[0].id;
             }
             partRecords.add(newPart);
         } else {
             System.debug('Part Map is null');
-            // Handle null partMap accordingly
         }
     } catch (Exception e) {
         System.debug('Error processing part: ' + e.getMessage());
-        // Handle exception accordingly
     }
 }
-
                 // Insert the new Part records
                 if (!partRecords.isEmpty()) {
                     insert partRecords;
@@ -78,39 +73,7 @@ public class SyncPartObject {
             System.debug('Non-200 status code received: ' + res.getStatusCode());
         }
     }
-    }
-    // Method to determine the Related Account based on logic provided
-  /* private static Id getRelatedAccount(Map<String, Object> partMap) {
-    Integer totalQuantityShipped = Integer.valueOf(String.valueOf(partMap.get('Total_Quantity_Shipped')));
-    System.debug('Total Quantity Shipped: ' + totalQuantityShipped);
-   
-    // Logic to determine Related Account based on Total Quantity Shipped
-    if (totalQuantityShipped != null) {
-        // Query and return Account Id based on Total Quantity Shipped
-        if (totalQuantityShipped < 99) {
-            Account highVolumeAccount = [SELECT Id FROM Account WHERE Name = 'High Volume' LIMIT 1];
-            if (highVolumeAccount != null) {
-                System.debug('High Volume Account Id: ' + highVolumeAccount.Id);
-                return highVolumeAccount.Id;
-            } else {
-                System.debug('High Volume Account not found');
-                return null;
-            }
-        } else {
-            Account lowVolumeAccount = [SELECT Id FROM Account WHERE Name = 'Low Volume' LIMIT 1];
-            if (lowVolumeAccount != null) {
-                System.debug('Low Volume Account Id: ' + lowVolumeAccount.Id);
-                return lowVolumeAccount.Id;
-            } else {
-                System.debug('Low Volume Account not found');
-                return null;
-            }
-        }
-    } else {
-        System.debug('Total Quantity Shipped is null');
-        return null;
-    }
-}*/
+ }
 
 
 }
