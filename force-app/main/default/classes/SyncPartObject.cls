@@ -4,8 +4,11 @@ public class SyncPartObject {
     public static void syncPartRecords() {
         String profileID = UserInfo.getProfileId();
         List<Profile> profileName = [SELECT Name FROM Profile WHERE Id = :profileID];
+        List<PermissionSetAssignment> assignments = [SELECT Id, PermissionSetId
+                                                     FROM PermissionSetAssignment
+                                                     WHERE AssigneeId = :UserInfo.getUserId()];
         
-        if (profileName.isEmpty() || !profileName[0].Name.equals('System Administrator')) {
+        if ((profileName.isEmpty() || !profileName[0].Name.equals('System Administrator')) && assignments[0].Id != '2F0PSGA000003qBnA' ) {
             throw new AuraHandledException('You do not have access.');
         }
         
