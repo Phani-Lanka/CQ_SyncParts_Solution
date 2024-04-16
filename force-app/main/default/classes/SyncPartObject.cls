@@ -8,7 +8,7 @@ public class SyncPartObject {
                                                      FROM PermissionSetAssignment
                                                      WHERE AssigneeId = :UserInfo.getUserId()];
         
-        if ((profileName.isEmpty() || !profileName[0].Name.equals('System Administrator')) && assignments[0].Id != '2F0PSGA000003qBnA' ) {
+        if ((!profileName[0].Name.equals('System Administrator')) && assignments[0].Id != '2F0PSGA000003qBnA' ) {
             throw new AuraHandledException('You do not have access.');
         }
         
@@ -47,13 +47,13 @@ public class SyncPartObject {
         // Check for null values before accessing map keys
         if (partMap != null) {
             SQX_Part__c newPart = new SQX_Part__c();
-            newPart.Part_Number__c = String.valueOf(partMap.get('_Id'));
+            newPart.Part_Number__c = String.valueOf(partMap.get('_id'));
             newPart.Name = String.valueOf(partMap.get('Part Name'));
             newPart.Active__c = true; // Hardcoded as 'true' as per the requirement
-            if (partMap.get('Total_Quantity_Shipped') != null) {
-                Integer totalQuantityShipped = Integer.valueOf(String.valueOf(partMap.get('Total_Quantity_Shipped')));
+            if (partMap.get('Total Quantity Shipped') != null) {
+                Integer totalQuantityShipped = Integer.valueOf(String.valueOf(partMap.get('Total Quantity Shipped')));
                 system.debug('totalQuantityShipped' + totalQuantityShipped);
-                newPart.Related_Account__c = totalQuantityShipped>99 ? highVolumeAccounts[0].id: lowVolumeAccounts[0].id;
+                newPart.Related_Account__c = totalQuantityShipped>=99 ? lowVolumeAccounts[0].id: highVolumeAccounts[0].id;
             }
             partRecords.add(newPart);
         } else {
